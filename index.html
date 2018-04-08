@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+			box-sizing: border-box;
+		}
+		.clearfix:after{
+			clear: both;
+		}
+		.clearfix:before,
+		.clearfix:after{
+			display: table;
+			content: ' ';
+		}
+
+		.container{
+			position: absolute;
+			top: 10%;
+			left: 20%;
+		}
+		#date{
+			width: 450px;
+			min-height: 300px;
+			border:1px solid #e2e2e2;
+			box-shadow: 0 2px 4px rgba(0,0,0,.12);
+			background: #fff;
+			-webkit-user-select: none;
+		    -khtml-user-select: none;
+		    -moz-user-select: none;
+		    -ms-user-select: none;
+		    user-select: none;    
+		}
+		.title{
+			position: relative;
+			height: 70px;
+			text-align: center;
+			border-bottom: 1px solid #e2e2e2;
+		}
+		#prev,#next{
+			height: 100%;
+			width: 60px;
+			line-height: 70px;
+			font-size: 20px;
+			cursor: pointer;
+		}
+		#prev:hover,#next:hover{
+			color: #6ac13c;
+		}
+		#prev{
+			float: left;
+		}
+		#next{
+			float: right;
+		}
+		#date-container{
+			margin: 0 60px;
+			overflow: hidden;
+			height: 100%;
+			line-height: 70px;
+		}
+		#date-container > div{
+			font-size: 24px;
+			display: inline-block;
+			font-family: arial;
+			cursor: pointer;
+		}
+		#date-container > div:first-child{
+			margin-right: 10px;
+		}
+
+		.body{
+			padding: 10px;
+			border-bottom: 1px solid #e2e2e2;
+		}
+		#week-list{
+			width: 100%;
+			color: #a8a8a8;
+		}
+		#week-list li,
+		#day-list li{
+			float: left;
+			list-style: none;
+			width: 14.28%;
+			text-align: center;
+		}
+		#day-list li{
+			height: 36px;
+			line-height: 36px;
+		}
+		#day-list .day-list-item{
+			display: inline-block;
+			height: 36px;
+			width: 36px;
+			border-radius: 50%;
+			cursor: pointer;
+		}
+		#day-list .day-list-item:hover{
+			border:1px solid #6ac13c;
+		}
+		#day-list .day-list-prev,
+		#day-list .day-list-next{
+			color:#d2d2d2;
+		}
+		#day-list .day-list-item.active{
+			border:1px solid #6ac13c;
+			border-radius: 50%;
+		}
+		#day-list .day-list-item.today{
+			border:1px solid #6ac13c;
+			background: #6ac13c;
+			color: #fff;
+		}
+
+		.bottom{
+			text-align: right;
+			padding-right: 20px;
+			padding-top: 10px;
+			padding-bottom: 10px;
+		}
+		.bottom .btn{
+			display: inline-block;
+			padding: 5px 12px;
+			border-radius: 4px;
+			background: #6ac13c;
+			color: #fff;
+			font-size: 14px;
+			cursor: pointer;
+		}
+	</style>
+</head>
+<body>
+	<div class="container">
+		<div id="date">
+			<!-- 头部 -->
+			<div class="title">
+				<div id="prev"><</div>
+				<div id="next">></div>
+				<div id="date-container">
+					<div>
+						<span id="year">2018</span><span> 年</span>	
+					</div>
+					<div>
+						<span id="month">4</span><span> 月</span>
+					</div>
+				</div>
+			</div>
+			<!-- 内容 -->
+			<div class="body">
+				<ul id="week-list" class="clearfix">
+					<li>日</li>
+					<li>一</li>
+					<li>二</li>
+					<li>三</li>
+					<li>四</li>
+					<li>五</li>
+					<li>六</li>
+				</ul>
+				<ul id="day-list" class="clearfix">
+					<li><span class="day-list-item today">1</span></li>
+				</ul>
+			</div>
+			<!-- 底部按钮 -->
+			<div class="bottom">
+				<a class="btn" id="go-today">今天</a>
+			</div>
+		</div>
+	</div>
+
+<script type="text/javascript">
+
+	var month_normal = [31,28,31,30,31,30,31,31,30,31,30,31]; //普通年的月数
+	var month_leap =   [31,29,31,30,31,30,31,31,30,31,30,31]; //闰年的月数
+
+	var yearEl = document.getElementById('year'),
+		monthEl = document.getElementById('month'),
+		prev = document.getElementById('prev'),
+		next = document.getElementById('next'),
+		today = document.getElementById('go-today');
+
+	prev.onclick = function(){
+		var year = parseInt( yearEl.textContent );
+		var month = parseInt( monthEl.textContent ) - 1;
+		if(month < 1){
+			month = 12;
+			year = year - 1;
+		}
+		render(year,month);
+	}
+
+	next.onclick = function(){
+		var year = parseInt( yearEl.textContent );
+		var month = parseInt( monthEl.textContent ) + 1;
+		if(month > 12){
+			month = 1;
+			year = year + 1;
+		}
+		render(year,month);
+	}
+
+	today.onclick = function(){
+		var date = new Date(),
+		currYear = date.getFullYear(),
+		currMon = date.getMonth()+1,
+		currDay = date.getDate();
+
+		render(currYear,currMon);
+	}
+
+	function render(year,month){
+
+		//范围都是从 0~11
+		var prevMon = month-1<1 ? 12 : month-1; //上个月  值为3，代表3月
+		var nextMon = month+1>12 ? 1 : month+1; //下个月  值为5，代表5月
+
+
+		//获得当月天数
+		var days; //当月天数
+		var prevMonDay; //上个月最后一天是多少号
+		if( isLeapYear(year) ){
+			days = month_leap[month-1];
+			prevMonDay = month_leap[prevMon-1];
+		}else{
+			days = month_normal[month-1];
+			prevMonDay = month_normal[prevMon-1];
+		}
+
+		yearEl.textContent = year;
+		monthEl.textContent = month;
+
+		var html = '';
+		//渲染上个月填充日期
+		var date = new Date(year,month-1,1); 
+		var prevDays = date.getDay(); //该月第一天是星期几（代表填充的个数）
+		var start = prevMonDay - prevDays + 1;
+		for(var i=0;i<prevDays;i++,start++){
+			html += '<li><span class="day-list-item day-list-prev">'+start+'</span></li>';
+		}
+
+		//渲染当月日期
+		var date = new Date(),
+			currYear = date.getFullYear(),
+			currMon = date.getMonth()+1,
+			currDay = date.getDate();
+		for(var i=0;i<days;i++){
+			if(year === currYear && month === currMon && i === currDay-1){ //今天
+				html += '<li><span class="day-list-item today">'+(i+1)+'</span></li>';
+			}else{
+				html += '<li><span class="day-list-item">'+(i+1)+'</span></li>';
+			}
+		}
+
+		//渲染下个月填充日期
+		var date = new Date(year,month-1,days);
+		var nextDays = 6 - date.getDay(); //6 - 该月最后是星期几（代表填充的个数）
+		var start = 1;
+		for(var i=0;i<nextDays;i++,start++){
+			html += '<li><span class="day-list-item day-list-next">'+start+'</span></li>';
+		}
+
+		var dayList = document.getElementById('day-list');
+		dayList.innerHTML = html;
+	}
+
+	//判断是否是闰年
+	function isLeapYear(year) {
+		var r = year%100===0 ? year%400===0 : year%4===0;
+		return r;
+	}
+
+	var date = new Date(),
+		currYear = date.getFullYear(),
+		currMon = date.getMonth()+1,
+		currDay = date.getDate();
+	console.log(currYear,currMon,currDay);
+
+	render(currYear,currMon);
+
+</script>
+</body>
+</html>
